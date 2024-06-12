@@ -9,7 +9,7 @@ def copy_to_database2(record):
     conn2 = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="1234",
+        password="****",
         database="db2"
     )
     cursor2 = conn2.cursor()
@@ -37,7 +37,7 @@ def copy_to_database1(record):
     conn1 = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="1234",
+        password="****",
         database="db1"
     )
     cursor1 = conn1.cursor()
@@ -62,7 +62,7 @@ def insert_record(record):
     conn1 = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="1234",
+        password="****",
         database="db1"
     )
     cursor1 = conn1.cursor()
