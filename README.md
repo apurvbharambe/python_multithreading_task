@@ -1,4 +1,4 @@
-# python_multithreading_task
+# Python_multithreading_task
 
 
 ### Do this tasl using multithreading (python) :
