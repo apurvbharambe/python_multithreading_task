@@ -1,0 +1,110 @@
+import mysql.connector
+import threading
+import time
+
+# Function to copy records from db1.table1 to db2.table2
+
+def copy_to_database2(record):
+    # Connect to db2
+    conn2 = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="1234",
+        database="db2"
+    )
+    cursor2 = conn2.cursor()
+
+    # Insert record into db2.table2
+    insert_query = "INSERT INTO table2 (student_id, name, city) VALUES (%s, %s, %s)"
+    cursor2.execute(insert_query, record)
+    conn2.commit()
+
+    # Close connection
+    cursor2.close()
+    conn2.close()
+
+    # Sleep for 60 seconds after copying to db2.table2
+    time.sleep(60)
+
+    # After the sleep, start the thread to copy back to db1
+    thread2 = threading.Thread(target=copy_to_database1, args=(record,))
+    thread2.start()
+    thread2.join()
+
+# Function to copy records from db2.table2 back to db1.table1 with new ID
+def copy_to_database1(record):
+    # Connect to db1
+    conn1 = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="1234",
+        database="db1"
+    )
+    cursor1 = conn1.cursor()
+
+    # Retrieve the maximum ID from db1.table1
+    cursor1.execute("SELECT MAX(student_id) FROM table1")
+    max_id = cursor1.fetchone()[0]
+    new_id = max_id + 1 if max_id else 1  # If max_id is None, set new_id to 1
+
+    # Insert record into db1.table1 with new ID
+    insert_query = "INSERT INTO table1 (student_id, name, city) VALUES (%s, %s, %s)"
+    new_record = (new_id,) + record[1:]  # Replace student_id with new_id
+    cursor1.execute(insert_query, new_record)
+    conn1.commit()
+
+    # Close connection
+    cursor1.close()
+    conn1.close()
+
+def insert_record(record):
+    # Connect to db1
+    conn1 = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="1234",
+        database="db1"
+    )
+    cursor1 = conn1.cursor()
+
+# Check if a record with the same student_id already exists
+    check_query = "SELECT * FROM table1 WHERE student_id = %s"
+    cursor1.execute(check_query, (record[0],))
+    existing_record = cursor1.fetchone()
+
+    if existing_record:
+        print("Record with this student ID already exists. Please enter a new record.")
+        conn1.close()
+        record = get_user_input()  # Get new input from the user
+        insert_record(record)  # Try inserting the new record again
+    else:
+        # Insert record into db1.table1
+        insert_query = "INSERT INTO table1 (student_id, name, city) VALUES (%s, %s, %s)"
+        cursor1.execute(insert_query, record)
+        conn1.commit()
+
+        # Close connection
+        cursor1.close()
+        conn1.close()
+
+        # Create thread for copying to db2.table2
+        thread1 = threading.Thread(target=copy_to_database2, args=(record,))
+        
+        # Start thread
+        thread1.start()
+
+        # Wait for thread to finish
+        thread1.join()
+
+def get_user_input():
+    student_id = int(input("Enter student ID: "))
+    name = input("Enter student name: ")
+    city = input("Enter student city: ")
+    return (student_id, name, city)
+
+# Example usage
+if __name__ == "__main__":
+    record = get_user_input()  # Get input from the user
+    insert_record(record)
+    
+    
